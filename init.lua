@@ -223,67 +223,57 @@ require('lualine').setup {
 -- 
 -- 2. LSP Configuration
 -- 
-local lspconfig = require('lspconfig')
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+-- Apply cmp capabilities to every server
+vim.lsp.config('*', {
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+})
 
 -- Python
-lspconfig.pyright.setup{
-  capabilities = capabilities,
+vim.lsp.config('pyright', {
   settings = {
     python = {
       analysis = {
         autoSearchPaths = true,
         useLibraryCodeForTypes = true,
-        diagnosticMode = "workspace"
-      }
-    }
-  }
-}
-
--- Bash
-lspconfig.bashls.setup{
-  capabilities = capabilities
-}
+        diagnosticMode = "workspace",
+      },
+    },
+  },
+})
 
 -- JavaScript/TypeScript/React
-lspconfig.ts_ls.setup{
-  capabilities = capabilities,
-  filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" }
-}
-
--- SQL
-lspconfig.sqlls.setup{
-  capabilities = capabilities
-}
+vim.lsp.config('ts_ls', {
+  filetypes = { "javascript", "javascriptreact", "javascript.jsx",
+                "typescript", "typescriptreact", "typescript.tsx" },
+})
 
 -- LaTeX
-
-lspconfig.texlab.setup{
-  capabilities = capabilities,  -- ADD THIS LINE
+vim.lsp.config('texlab', {
   settings = {
     texlab = {
       build = {
         executable = "latexmk",
-        args = {"-pdf", "-interaction=nonstopmode", "-synctex=1", "%f"},
+        args = { "-pdf", "-interaction=nonstopmode", "-synctex=1", "%f" },
         onSave = false,
       },
       chktex = {
         onOpenAndSave = false,
         onEdit = false,
       },
-      bibtex = {                    -- Add this section
-        formatting = {
-          lineLength = 120,
-        },
+      bibtex = {
+        formatting = { lineLength = 120 },
       },
-      completion = {                -- Add this section
-        bibtex = {
-          enabled = true,
-        },
+      completion = {
+        bibtex = { enabled = true },
       },
-    }
-  }
-}
+    },
+  },
+})
+
+-- bashls and sqlls need no overrides
+vim.lsp.enable({ 'pyright', 'bashls', 'ts_ls', 'sqlls', 'texlab' })
+
 
 -- Add keybindings for LSP functionality
 local opts = { noremap=true, silent=true }
