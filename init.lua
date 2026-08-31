@@ -113,6 +113,17 @@ require("lazy").setup({
   }
 })
 
+-- cross platform --
+local is_mac = vim.fn.has('macunix') == 1
+
+if is_mac then
+  vim.g.vimtex_view_method = 'skim'
+  vim.g.vimtex_view_skim_sync = 1
+  vim.g.vimtex_view_skim_activate = 1
+else
+  vim.g.vimtex_view_method = 'zathura'
+end
+
 vim.env.GIT_EDITOR = 'nvim'
 vim.opt.diffopt:append("vertical")
 vim.opt.diffopt:append("vertical,algorithm:histogram,indent-heuristic")
