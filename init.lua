@@ -116,14 +116,6 @@ require("lazy").setup({
 -- cross platform --
 local is_mac = vim.fn.has('macunix') == 1
 
-if is_mac then
-  vim.g.vimtex_view_method = 'skim'
-  vim.g.vimtex_view_skim_sync = 1
-  vim.g.vimtex_view_skim_activate = 1
-else
-  vim.g.vimtex_view_method = 'zathura'
-end
-
 vim.env.GIT_EDITOR = 'nvim'
 vim.opt.diffopt:append("vertical")
 vim.opt.diffopt:append("vertical,algorithm:histogram,indent-heuristic")
@@ -143,9 +135,13 @@ vim.cmd.colorscheme "catppuccin"
 -- vim.g.vimtex_view_general_viewer = 'open'
 -- vim.g.vimtex_view_general_options = '-a "PDF Expert" --args'
 
-vim.g.vimtex_view_method = 'skim'
-vim.g.vimtex_view_skim_sync = 1
-vim.g.vimtex_view_skim_activate = 1
+if is_mac then
+  vim.g.vimtex_view_method = 'skim'
+  vim.g.vimtex_view_skim_sync = 1
+  vim.g.vimtex_view_skim_activate = 1
+else
+  vim.g.vimtex_view_method = 'zathura'
+end
 
 -- Configure vimtex to use make
 vim.g.vimtex_compiler_method = 'generic'
@@ -389,8 +385,21 @@ end, {})
 vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
 
 
--- Fix disappearing cursor in iTerm2 on Mac
-vim.opt.guicursor = ""  -- Disable Neovim's cursor shape control
+-- Cursor shapes. The old iTerm2 disappearing-cursor bug was triggered by
+-- the blinking variants, so disable blinking but keep the shapes -- an
+-- empty guicursor means nvim emits nothing and cannot restore the cursor
+-- after prompts like vimtex's main-file selection.
+if is_mac then
+  vim.opt.guicursor = "a:block-blinkon0"
+else
+  vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50"
+end
+
+-- Belt and braces: force the cursor visible after anything that may have
+-- hidden it (prompts, shelling out, terminal jobs).
+vim.api.nvim_create_autocmd({ "VimResume", "TermLeave", "CmdlineLeave" }, {
+  callback = function() io.stdout:write("\27[?25h") end,
+})
 
 -- 
 -- 4. Global line number settings
@@ -921,5 +930,11 @@ vim.api.nvim_create_autocmd("User", {
         update_root = false,
       },
     })
+  end,
+})
+
+vim.api.nvim_create_autocmd("UIEnter", {
+  callback = function()
+    vim.defer_fn(function() io.stdout:write("\27[?25h") end, 50)
   end,
 })
